@@ -1,0 +1,47 @@
+version: "3.9"
+services:
+  reveal-lite:
+    build: reveal-lite
+    ports:
+      - "3000:3000"
+    depends_on:
+      - node-red
+      - mongo
+      - mosquitto
+    stdin_open: true
+    # Volume mounting and environment var WATCHPACK_POLLING is for hot-reloading React during development
+    volumes:
+      - ./reveal-lite/:/app/
+    environment:
+      WATCHPACK_POLLING: "true"
+  node-red:
+    image: nodered/node-red
+    volumes:
+      - ./node-red/data/:/data
+      - ./node-red/data/node_modules:/usr/src/node-red/node_modules
+    ports:
+      - 1880:1880
+    depends_on:
+      - mongo
+      - mosquitto
+  mongo:
+    image: mongo:4.0.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+      - ./mongo:/docker-entrypoint-initdb.d
+  mosquitto:
+    image: eclipse-mosquitto:1.6
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - 1883:1883
+      - 9001:9001
+
+volumes:
+  mongodb_data_container:
+  node_red_data:
